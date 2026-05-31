@@ -17,6 +17,13 @@
   </tr>
 </table>
 
+返回当前分类下的题单列表。`data` 包含以下字段：
+
+- `trainings` — 题单分页列表（官方题单 perPage=18，精选题单 perPage=30）
+- `acCounts` — 当前用户在各题单中已通过的题目数，键为题单 ID（字符串）
+- `type` — 当前分类 key（如 `"srqc-jc"`、`"contest.noip"`）
+- `categories` — 所有可用分类列表，每项包含 `key` 和 `name`
+
 ## 列出创建的题单
 
 <table>
@@ -46,6 +53,12 @@
     <td><code>application/json</code> (<code>LentilleDataResponse&lt;ProblemSetData&gt;</code>)</td>
   </tr>
 </table>
+
+`data` 包含以下字段：
+
+- `training` — 题单详情（`ProblemSetDetails`），其中 `problems` 为 `TrainingProblem[]`，每项直接包含题目信息（`pid`、`name`、`difficulty`、`submitted`、`accepted`、`tags`、`provider` 等），而非嵌套在 `problem` 键下
+- `canEdit` — 当前用户是否可编辑此题单
+- `privilegedTeams` — 有权限的团队列表（仅对有编辑权限的用户返回）
 
 ## 列出收藏的题单
 

@@ -16,7 +16,25 @@
         content:
           application/json:
             schema:
-              $ref: "../openapi.yaml#/components/schemas/LentilleDataResponse"
+              allOf:
+                - $ref: "../openapi.yaml#/components/schemas/LentilleDataResponse"
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        trainings:
+                          $ref: "../openapi.yaml#/components/schemas/List"
+                        acCounts:
+                          type: object
+                          additionalProperties: { type: integer }
+                        type:
+                          type: string
+                          description: 当前分类 key
+                        categories:
+                          type: array
+                          items:
+                            $ref: "../openapi.yaml#/components/schemas/ProblemSetCategory"
 
 /api/user/createdTrainings:
   get:
@@ -52,7 +70,21 @@
         content:
           application/json:
             schema:
-              $ref: "../openapi.yaml#/components/schemas/LentilleDataResponse"
+              allOf:
+                - $ref: "../openapi.yaml#/components/schemas/LentilleDataResponse"
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        training:
+                          $ref: "../openapi.yaml#/components/schemas/ProblemSetDetails"
+                        canEdit:
+                          type: boolean
+                        privilegedTeams:
+                          type: array
+                          items:
+                            $ref: "../openapi.yaml#/components/schemas/TeamSummary"
 
 /api/user/markedTrainings:
   get:
