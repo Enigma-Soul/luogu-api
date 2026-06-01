@@ -1,0 +1,20 @@
+[project]
+name = "luogu-api"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "requests>=2.34.2",
+]
+
+[project.scripts]
+luogutest = "luogutests:main"
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["luogutests*"]
+
+[tool.setuptools.package-data]
+luogutests = ["*.py"]
