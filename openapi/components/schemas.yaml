@@ -265,14 +265,38 @@ ProblemSet:
     marked: { type: boolean }
     markCount: { type: integer }
 
+TrainingProblem:
+  type: object
+  properties:
+    pid: { type: string }
+    type: { type: string }
+    name: { type: string }
+    difficulty: { type: integer, nullable: true }
+    submitted: { type: boolean }
+    accepted: { type: boolean }
+    tags: { type: array, items: { type: integer } }
+    totalSubmit: { type: integer }
+    totalAccepted: { type: integer }
+    flag: { type: integer }
+    provider: {}
+
 ProblemSetDetails:
   allOf:
     - $ref: "./schemas.yaml#/ProblemSet"
     - type: object
       properties:
         description: { type: string }
-        problems: { type: array, items: {} }
+        problems:
+          type: array
+          items:
+            $ref: "./schemas.yaml#/TrainingProblem"
         userScore: {}
+
+ProblemSetCategory:
+  type: object
+  properties:
+    key: { type: string }
+    name: { type: string }
 
 ProblemSetSettings:
   type: object

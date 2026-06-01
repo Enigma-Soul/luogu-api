@@ -489,14 +489,15 @@ export interface SolutionsData {
 
 export interface ProblemSetListData {
   trainings: List<ProblemSet>;
-  acceptedCounts: { [id: number]: number };
+  acCounts: { [id: string]: number };
+  type: string;
+  categories: { key: string; name: string }[];
 }
 
 export interface ProblemSetData {
   training: ProblemSetDetails;
-  trainingProblems: { result: [][]; perPage: null; count: number };
   canEdit: boolean;
-  privilegedTeams: TeamSummary[];
+  privilegedTeams?: TeamSummary[];
 }
 
 export interface ContestData {
@@ -898,18 +899,32 @@ export interface ProblemSet {
   createTime: number;
   deadline: number | null;
   problemCount: number;
-  marked: boolean;
+  marked?: boolean;
   markCount: number;
+}
+
+export interface TrainingProblem {
+  pid: string;
+  type: string;
+  name: string;
+  difficulty: number | null;
+  submitted: boolean;
+  accepted: boolean;
+  tags: number[];
+  totalSubmit: number;
+  totalAccepted: number;
+  flag: number;
+  provider: UserSummary | TeamSummary;
 }
 
 export interface ProblemSetDetails extends ProblemSet {
   description: string;
-  problems: { problem: LegacyProblem }[];
-  userScore: {
+  problems: TrainingProblem[];
+  userScore?: {
     user: UserSummary;
     totalScore: number;
-    score: { [pid: string]: number | null };
-    status: { [pid: string]: boolean };
+    score: number;
+    passedCount: number;
   } | null;
 }
 

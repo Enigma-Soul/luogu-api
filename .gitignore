@@ -2,3 +2,10 @@
 .vscode/
 .idea/
 .claude/
+cookie.json
+__pycache__/
+*.pyc
+captcha.jpg
+.venv
+.python-verson
+uv.lock
