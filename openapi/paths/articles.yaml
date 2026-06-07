@@ -102,7 +102,7 @@
                   items:
                     $ref: "../openapi.yaml#/components/schemas/ArticleCollectionSummary"
 
-/api/article/new:
+/article/_newSubmit:
   post:
     tags: [专栏]
     summary: 创建文章
@@ -122,7 +122,24 @@
                 article:
                   $ref: "../openapi.yaml#/components/schemas/ArticleDetails"
 
-/api/article/edit/{lid}:
+/article/{lid}/edit:
+  get:
+    tags: [专栏]
+    summary: 获取编辑数据
+    parameters:
+      - name: lid
+        in: path
+        required: true
+        schema: { type: string }
+    responses:
+      "200":
+        description: 文章编辑数据
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/LentilleDataResponse"
+
+/article/{lid}/editSubmit:
   post:
     tags: [专栏]
     summary: 编辑文章
@@ -147,7 +164,7 @@
                 article:
                   $ref: "../openapi.yaml#/components/schemas/ArticleDetails"
 
-/api/article/delete/{lid}:
+/article/{lid}/delete:
   post:
     tags: [专栏]
     summary: 删除文章
@@ -156,6 +173,11 @@
         in: path
         required: true
         schema: { type: string }
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
     responses:
       "200":
         description: 删除成功
@@ -185,7 +207,7 @@
               properties:
                 lids: { type: array, items: { type: string } }
 
-/api/article/favor/{lid}:
+/article/{lid}/favor:
   post:
     tags: [专栏]
     summary: 收藏文章
@@ -196,7 +218,12 @@
         schema: { type: string }
       - name: remove
         in: query
-        schema: { type: string }
+        schema: { type: integer, enum: [1] }
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
     responses:
       "200":
         description: 收藏/取消收藏成功
