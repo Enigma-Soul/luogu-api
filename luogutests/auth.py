@@ -1,4 +1,4 @@
-from base import LuoguClient, log, confirm
+from base import LuoguClient, confirm, prompt, run_from_cli
 
 client = LuoguClient()
 
@@ -12,7 +12,7 @@ def get_captcha():
 def send_signup_code():
     """发送注册验证码"""
     cap = client.captcha()
-    endpoint = input("手机号/邮箱: ").strip()
+    endpoint = prompt("手机号/邮箱: ").strip()
     body = {"endpoint": endpoint, "captcha": cap}
     r = client.post("/auth/motp/to", params={"endpoint": endpoint, "exist": 0}, json=body)
     return r.json()
@@ -20,10 +20,10 @@ def send_signup_code():
 
 def register():
     """注册"""
-    username = input("用户名: ").strip()
-    password = input("密码: ").strip()
-    endpoint = input("手机号/邮箱: ").strip()
-    code = input("验证码: ").strip()
+    username = prompt("用户名: ").strip()
+    password = prompt("密码: ").strip()
+    endpoint = prompt("手机号/邮箱: ").strip()
+    code = prompt("验证码: ").strip()
     body = {
         "username": username,
         "password": password,
@@ -38,8 +38,8 @@ def register():
 def login():
     """登录 (密码)"""
     cap = client.captcha()
-    username = input("用户名: ").strip()
-    password = input("密码: ").strip()
+    username = prompt("用户名: ").strip()
+    password = prompt("密码: ").strip()
     body = {"username": username, "password": password, "captcha": cap}
     r = client.post("/do-auth/password", json=body)
     return r.json()
@@ -59,7 +59,7 @@ def lock():
 
 def unlock_totp():
     """TOTP 解锁"""
-    code = input("TOTP 验证码: ").strip()
+    code = prompt("TOTP 验证码: ").strip()
     r = client.post("/do-auth/totp", json={"code": code})
     return r.json()
 
@@ -67,14 +67,14 @@ def unlock_totp():
 def send_motp():
     """发送一次性验证码"""
     cap = client.captcha()
-    endpoint = input("手机号/邮箱: ").strip()
+    endpoint = prompt("手机号/邮箱: ").strip()
     r = client.post("/auth/motp/request", params={"endpoint": endpoint}, json={"captcha": cap})
     return r.json()
 
 
 def unlock_motp():
     """一次性验证码解锁"""
-    code = input("验证码: ").strip()
+    code = prompt("验证码: ").strip()
     r = client.post("/do-auth/motp", json={"code": code})
     return r.json()
 
@@ -85,24 +85,38 @@ def get_unlock_methods():
     return data
 
 
-if __name__ == "__main__":
-    get_unlock_methods()
+APIS = {
+    "captcha": get_captcha,
+    "send_signup_code": send_signup_code,
+    "register": register,
+    "login": login,
+    "logout": logout,
+    "lock": lock,
+    "unlock_totp": unlock_totp,
+    "send_motp": send_motp,
+    "unlock_motp": unlock_motp,
+    "unlock_methods": get_unlock_methods,
+}
 
-    if confirm("获取验证码"):
-        get_captcha()
-    if confirm("登录"):
-        login()
-    if confirm("发送注册验证码"):
-        send_signup_code()
-    if confirm("注册"):
-        register()
-    if confirm("锁定会话"):
-        lock()
-    if confirm("TOTP 解锁"):
-        unlock_totp()
-    if confirm("发送一次性验证码"):
-        send_motp()
-    if confirm("一次性验证码解锁"):
-        unlock_motp()
-    if confirm("登出"):
-        logout()
+if __name__ == "__main__":
+    def _interactive():
+        get_unlock_methods()
+        if confirm("获取验证码"):
+            get_captcha()
+        if confirm("登录"):
+            login()
+        if confirm("发送注册验证码"):
+            send_signup_code()
+        if confirm("注册"):
+            register()
+        if confirm("锁定会话"):
+            lock()
+        if confirm("TOTP 解锁"):
+            unlock_totp()
+        if confirm("发送一次性验证码"):
+            send_motp()
+        if confirm("一次性验证码解锁"):
+            unlock_motp()
+        if confirm("登出"):
+            logout()
+    run_from_cli(APIS, _interactive)

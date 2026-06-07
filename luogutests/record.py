@@ -1,4 +1,4 @@
-from base import LuoguClient, log
+from base import LuoguClient, confirm, prompt, run_from_cli
 
 client = LuoguClient()
 
@@ -27,14 +27,22 @@ def download_testcase(rid, testcase_id):
     return r.json()
 
 
-if __name__ == "__main__":
-    list_records()
+APIS = {
+    "list": list_records,
+    "get": get_record,
+    "query_downloadable": query_downloadable_testcase,
+    "download": download_testcase,
+}
 
-    rid = input("  测试记录ID (留空跳过): ").strip()
-    if rid:
-        get_record(rid)
-        if confirm(f"查询可下载测试点 (记录 {rid})"):
-            result = query_downloadable_testcase(rid)
-            tc_id = result.get("testcaseId")
-            if tc_id and confirm(f"下载测试点 {tc_id}"):
-                download_testcase(rid, tc_id)
+if __name__ == "__main__":
+    def _interactive():
+        list_records()
+        rid = prompt("  测试记录ID (留空跳过): ").strip()
+        if rid:
+            get_record(rid)
+            if confirm(f"查询可下载测试点 (记录 {rid})"):
+                result = query_downloadable_testcase(rid)
+                tc_id = result.get("testcaseId")
+                if tc_id and confirm(f"下载测试点 {tc_id}"):
+                    download_testcase(rid, tc_id)
+    run_from_cli(APIS, _interactive)

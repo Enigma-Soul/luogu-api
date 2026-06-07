@@ -134,6 +134,17 @@
   </tr>
 </table>
 
+### EditArticleRequest 字段
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `title` | `string` | 标题 |
+| `category` | `number` | 分类：1=个人记录 2=题解 3=科技·工程 4=算法·理论 5=生活·游记 6=学习·文化课 7=休闲·娱乐 8=闲话 |
+| `content` | `string` | 内容 |
+| `solutionFor` | `string \| null` | 题解对应题目 ID，空字符串表示非题解 |
+| `status` | `number` | 状态：1=私有 2=公开 |
+| `top` | `number` | 置顶：0=置顶 1=次级置顶 2=不置顶 |
+
 ## 获取编辑数据
 
 <table>
@@ -181,7 +192,9 @@
   </tr>
 </table>
 
-## 批量修改文章
+## ~~批量修改文章~~
+
+> 端点未测试，可能已变更。
 
 <table>
   <tr>
@@ -226,11 +239,15 @@
 <table>
   <tr>
     <th align="right">请求</th>
-    <td><code>POST /api/article/vote/:lid</code></td>
+    <td><code>POST /article/:lid/vote</code></td>
   </tr>
   <tr>
     <th align="right">参数</th>
     <td><code>{ vote: number }</code></td>
+  </tr>
+  <tr>
+    <th align="right">请求主体</th>
+    <td><code>application/json</code> (<code>{}</code>)</td>
   </tr>
   <tr>
     <th align="right">响应主体</th>
@@ -238,7 +255,9 @@
   </tr>
 </table>
 
-## 申请全站推荐
+## ~~申请全站推荐~~
+
+> 端点未测试，可能已变更。
 
 <table>
   <tr>
@@ -251,7 +270,9 @@
   </tr>
 </table>
 
-## 撤回全站推荐
+## ~~撤回全站推荐~~
+
+> 端点未测试，可能已变更。
 
 <table>
   <tr>
@@ -304,6 +325,10 @@
   <tr>
     <th align="right">请求</th>
     <td><code>POST /article/:lid/deleteReply/:id</code></td>
+  </tr>
+  <tr>
+    <th align="right">请求主体</th>
+    <td><code>application/json</code> (<code>{}</code>)</td>
   </tr>
   <tr>
     <th align="right">响应主体</th>

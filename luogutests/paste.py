@@ -1,4 +1,4 @@
-from base import LuoguClient, log, confirm
+from base import LuoguClient, confirm, prompt, run_from_cli
 
 client = LuoguClient()
 
@@ -33,17 +33,26 @@ def delete_paste(pid):
     return r.json()
 
 
-if __name__ == "__main__":
-    list_pastes()
-    pid = input("  剪贴板ID (查看详情，留空跳过): ").strip()
-    if pid:
-        get_paste(pid)
+APIS = {
+    "list": list_pastes,
+    "get": get_paste,
+    "create": lambda: create_paste(prompt("内容: ").strip()),
+    "edit": edit_paste,
+    "delete": delete_paste,
+}
 
-    if confirm("创建剪贴板"):
-        text = input("  内容: ").strip()
-        create_paste(text)
-    if pid and confirm(f"编辑剪贴板 {pid}"):
-        text = input("  新内容: ").strip()
-        edit_paste(pid, text)
-    if pid and confirm(f"删除剪贴板 {pid}"):
-        delete_paste(pid)
+if __name__ == "__main__":
+    def _interactive():
+        list_pastes()
+        pid = prompt("  剪贴板ID (查看详情，留空跳过): ").strip()
+        if pid:
+            get_paste(pid)
+        if confirm("创建剪贴板"):
+            text = prompt("  内容: ").strip()
+            create_paste(text)
+        if pid and confirm(f"编辑剪贴板 {pid}"):
+            text = prompt("  新内容: ").strip()
+            edit_paste(pid, text)
+        if pid and confirm(f"删除剪贴板 {pid}"):
+            delete_paste(pid)
+    run_from_cli(APIS, _interactive)

@@ -1,4 +1,4 @@
-from base import LuoguClient, log, confirm
+from base import LuoguClient, confirm, prompt, run_from_cli
 
 client = LuoguClient()
 
@@ -17,8 +17,8 @@ def get_blog(blog_id):
 
 def create_blog():
     """创建博客"""
-    title = input("标题: ").strip()
-    content = input("内容: ").strip()
+    title = prompt("标题: ").strip()
+    content = prompt("内容: ").strip()
     data = {
         "title": title,
         "content": content,
@@ -34,8 +34,8 @@ def create_blog():
 
 def edit_blog(blog_id):
     """编辑博客"""
-    title = input("标题: ").strip()
-    content = input("内容: ").strip()
+    title = prompt("标题: ").strip()
+    content = prompt("内容: ").strip()
     data = {
         "title": title,
         "content": content,
@@ -51,9 +51,7 @@ def edit_blog(blog_id):
 
 def delete_blog(blog_id):
     """删除博客"""
-    log("WARN", f"将删除博客 {blog_id}")
-    ans = input("确认删除? (y/N): ").strip().lower()
-    if ans != "y":
+    if not confirm(f"删除博客 {blog_id}"):
         return None
     r = client.post(f"/api/blog/delete/{blog_id}")
     return r.json()
@@ -67,7 +65,7 @@ def get_blog_replies(blog_id):
 
 def reply_blog(blog_id):
     """评论博客"""
-    content = input("评论内容: ").strip()
+    content = prompt("评论内容: ").strip()
     r = client.post(f"/api/blog/reply/{blog_id}", json={"content": content})
     return r.json()
 
@@ -87,8 +85,8 @@ def delete_blog_comment(blog_id, reply_id):
 
 def batch_blog_operation(page_type="list"):
     """批量博客操作"""
-    method = input("操作 (update/recover/delete): ").strip()
-    blog_ids = input("博客ID (逗号分隔): ").strip().split(",")
+    method = prompt("操作 (update/recover/delete): ").strip()
+    blog_ids = prompt("博客ID (逗号分隔): ").strip().split(",")
     data = {
         "method": method,
         "blog-id[]": blog_ids,
@@ -98,28 +96,42 @@ def batch_blog_operation(page_type="list"):
     return r
 
 
-if __name__ == "__main__":
-    uid = input("  用户UID (查看博客列表，留空跳过): ").strip()
-    if uid:
-        list_blogs(uid)
+APIS = {
+    "list": list_blogs,
+    "get": get_blog,
+    "create": create_blog,
+    "edit": edit_blog,
+    "delete": delete_blog,
+    "replies": get_blog_replies,
+    "reply": reply_blog,
+    "vote": vote_blog,
+    "delete_comment": lambda blog_id, reply_id: delete_blog_comment(blog_id, int(reply_id)),
+    "batch": batch_blog_operation,
+}
 
-    blog_id = input("  博客ID (留空则只测试创建): ").strip()
-    if blog_id:
-        get_blog(blog_id)
-        get_blog_replies(blog_id)
-        if confirm(f"编辑博客 {blog_id}"):
-            edit_blog(blog_id)
-        if confirm(f"投票博客 {blog_id}"):
-            vote_blog(blog_id)
-        if confirm(f"评论博客 {blog_id}"):
-            reply_blog(blog_id)
-        if confirm(f"删除博客 {blog_id} (不可逆)"):
-            delete_blog(blog_id)
-        reply_id = input("  要删除的评论ID (留空跳过): ").strip()
-        if reply_id and confirm(f"删除博客 {blog_id} 的评论 {reply_id}"):
-            delete_blog_comment(blog_id, int(reply_id))
-    else:
-        if confirm("创建博客"):
-            create_blog()
-    if confirm("批量博客操作"):
-        batch_blog_operation()
+if __name__ == "__main__":
+    def _interactive():
+        uid = prompt("  用户UID (查看博客列表，留空跳过): ").strip()
+        if uid:
+            list_blogs(uid)
+        blog_id = prompt("  博客ID (留空则只测试创建): ").strip()
+        if blog_id:
+            get_blog(blog_id)
+            get_blog_replies(blog_id)
+            if confirm(f"编辑博客 {blog_id}"):
+                edit_blog(blog_id)
+            if confirm(f"投票博客 {blog_id}"):
+                vote_blog(blog_id)
+            if confirm(f"评论博客 {blog_id}"):
+                reply_blog(blog_id)
+            if confirm(f"删除博客 {blog_id} (不可逆)"):
+                delete_blog(blog_id)
+            reply_id = prompt("  要删除的评论ID (留空跳过): ").strip()
+            if reply_id and confirm(f"删除博客 {blog_id} 的评论 {reply_id}"):
+                delete_blog_comment(blog_id, int(reply_id))
+        else:
+            if confirm("创建博客"):
+                create_blog()
+        if confirm("批量博客操作"):
+            batch_blog_operation()
+    run_from_cli(APIS, _interactive)
