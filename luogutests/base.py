@@ -84,13 +84,13 @@ def confirm(action: str) -> bool:
 # ---------- client ----------
 
 class LuoguClient:
-    _DEFAULT_COOKIE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "cookie.json")
+    _DEFAULT_COOKIE = os.path.join(os.path.dirname(os.path.dirname(__file__)), "cookie.json")
 
     def __init__(self, cookie_path: str | None = None):
         cookie_path = cookie_path or self._DEFAULT_COOKIE
         self.session = requests.Session()
         self.session.headers.update({
-            "User-Agent": "LuoguTest/1.0",
+            "User-Agent": "Luogu API",
             "Referer": "https://www.luogu.com.cn/",
         })
         self._csrf = None
@@ -114,14 +114,12 @@ class LuoguClient:
 
     @property
     def csrf(self) -> str | None:
-        if self._csrf is None:
-            r = self.session.get(BASE_URL)
-            m = re.search(r'<meta name="csrf-token" content="([^"]+)"', r.text)
-            if m:
-                self._csrf = m.group(1)
-                log("INFO", "已获取 CSRF Token")
-            else:
-                log("WARN", "未找到 CSRF Token")
+        r = self.session.get(BASE_URL)
+        m = re.search(r'<meta name="csrf-token" content="([^"]+)"', r.text)
+        if m:
+            self._csrf = m.group(1)
+        else:
+            log("WARN", "未找到 CSRF Token")
         return self._csrf
 
     def _log_resp(self, r: requests.Response):

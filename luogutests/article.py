@@ -33,19 +33,44 @@ def article_available_collections(lid):
     return r.json()
 
 
+# 专栏分类: 1=个人记录 2=题解 3=科技·工程 4=算法·理论 5=生活·游记 6=学习·文化课 7=休闲·娱乐 8=闲话
+# 状态: 1=私有 2=公开
+# 置顶: 0=置顶 1=次级置顶 2=不置顶
+
+
 def create_article():
     """创建专栏"""
     title = input("标题: ").strip()
     content = input("内容: ").strip()
-    r = client.post("/api/article/new", json={"title": title, "content": content})
+    category = int(input("分类 (默认1): ").strip() or "1")
+    solution_for = input("题解题目ID (留空): ").strip()
+    status = int(input("状态 (默认1): ").strip() or "1")
+    top = int(input("置顶 (默认2): ").strip() or "2")
+    r = client.post("/article/_newSubmit", json={
+        "title": title, "category": category, "content": content,
+        "solutionFor": solution_for, "status": status, "top": top
+    })
     return r.json()
+
+
+def get_article_edit(lid):
+    """获取专栏编辑数据"""
+    data = client.lentille(f"/article/{lid}/edit")
+    return data
 
 
 def edit_article(lid):
     """编辑专栏"""
     title = input("标题: ").strip()
     content = input("内容: ").strip()
-    r = client.post(f"/api/article/edit/{lid}", json={"title": title, "content": content})
+    category = int(input("分类 (默认1): ").strip() or "1")
+    solution_for = input("题解题目ID (留空): ").strip()
+    status = int(input("状态 (默认1): ").strip() or "1")
+    top = int(input("置顶 (默认2): ").strip() or "2")
+    r = client.post(f"/article/{lid}/editSubmit", json={
+        "title": title, "category": category, "content": content,
+        "solutionFor": solution_for, "status": status, "top": top
+    })
     return r.json()
 
 
@@ -55,7 +80,7 @@ def delete_article(lid):
     ans = input("确认删除? (y/N): ").strip().lower()
     if ans != "y":
         return None
-    r = client.post(f"/api/article/delete/{lid}")
+    r = client.post(f"/article/{lid}/delete", json={})
     return r.json()
 
 
@@ -68,7 +93,7 @@ def batch_edit_articles():
 
 def favor_article(lid, remove=False):
     """收藏/取消收藏专栏"""
-    r = client.post(f"/api/article/favor/{lid}", params={"remove": remove})
+    r = client.post(f"/article/{lid}/favor", params={"remove": remove}, json={})
     return r.json()
 
 
@@ -112,15 +137,20 @@ def delete_article_reply(lid, reply_id):
 if __name__ == "__main__":
     list_articles()
     my_articles()
-    lid = input("  专栏ID (留空跳过详情测试): ").strip()
+
+    # 写入操作：创建专栏在最前面，后续使用其返回 ID
+    lid = None
+    if confirm("创建专栏"):
+        result = create_article()
+        lid = result.get("article", {}).get("lid")
+        log("INFO", f"创建成功，lid={lid}")
+
+    if not lid:
+        lid = input("  专栏ID (留空跳过后续测试): ").strip() or None
     if lid:
         get_article(lid)
         get_article_replies(lid)
         article_available_collections(lid)
-
-    if confirm("创建专栏"):
-        create_article()
-    if lid:
         if confirm(f"编辑专栏 {lid}"):
             edit_article(lid)
         if confirm(f"收藏专栏 {lid}"):
@@ -131,6 +161,11 @@ if __name__ == "__main__":
             request_promotion(lid)
         if confirm(f"评论专栏 {lid}"):
             reply_article(lid)
+        if confirm(f"撤回专栏 {lid} 推广"):
+            withdraw_promotion(lid)
+        reply_id = input("  要删除的评论ID (留空跳过): ").strip()
+        if reply_id and confirm(f"删除专栏 {lid} 的评论 {reply_id}"):
+            delete_article_reply(lid, int(reply_id))
         if confirm(f"删除专栏 {lid} (不可逆)"):
             delete_article(lid)
     collection_id = input("  合集ID (留空跳过): ").strip()
@@ -138,8 +173,3 @@ if __name__ == "__main__":
         article_collection(collection_id)
     if confirm("批量编辑专栏"):
         batch_edit_articles()
-    if lid and confirm(f"撤回专栏 {lid} 推广"):
-        withdraw_promotion(lid)
-    reply_id = input("  要删除的评论ID (留空跳过): ").strip()
-    if lid and reply_id and confirm(f"删除专栏 {lid} 的评论 {reply_id}"):
-        delete_article_reply(lid, int(reply_id))

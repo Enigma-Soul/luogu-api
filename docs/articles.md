@@ -122,7 +122,7 @@
 <table>
   <tr>
     <th align="right">请求</th>
-    <td><code>POST /api/article/new</code></td>
+    <td><code>POST /article/_newSubmit</code></td>
   </tr>
   <tr>
     <th align="right">请求主体</th>
@@ -134,12 +134,25 @@
   </tr>
 </table>
 
+## 获取编辑数据
+
+<table>
+  <tr>
+    <th align="right">请求</th>
+    <td><code>GET /article/:lid/edit</code></td>
+  </tr>
+  <tr>
+    <th align="right">响应主体</th>
+    <td><code>application/json</code> (<code>LentilleDataResponse&lt;ArticleData&gt;</code>)</td>
+  </tr>
+</table>
+
 ## 编辑文章
 
 <table>
   <tr>
     <th align="right">请求</th>
-    <td><code>POST /api/article/edit/:lid</code></td>
+    <td><code>POST /article/:lid/editSubmit</code></td>
   </tr>
   <tr>
     <th align="right">请求主体</th>
@@ -156,7 +169,11 @@
 <table>
   <tr>
     <th align="right">请求</th>
-    <td><code>POST /api/article/delete/:lid</code></td>
+    <td><code>POST /article/:lid/delete</code></td>
+  </tr>
+  <tr>
+    <th align="right">请求主体</th>
+    <td><code>application/json</code> (<code>{}</code>)</td>
   </tr>
   <tr>
     <th align="right">响应主体</th>
@@ -186,11 +203,15 @@
 <table>
   <tr>
     <th align="right">请求</th>
-    <td><code>POST /api/article/favor/:lid</code></td>
+    <td><code>POST /article/:lid/favor</code></td>
   </tr>
   <tr>
     <th align="right">参数</th>
-    <td><code>{ remove?: unknown }</code></td>
+    <td><code>{ remove?: 1 }</code></td>
+  </tr>
+  <tr>
+    <th align="right">请求主体</th>
+    <td><code>application/json</code> (<code>{}</code>)</td>
   </tr>
   <tr>
     <th align="right">响应主体</th>
