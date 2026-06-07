@@ -1,4 +1,4 @@
-from base import LuoguClient, log, confirm
+from base import LuoguClient, confirm, prompt, run_from_cli
 
 client = LuoguClient()
 
@@ -33,16 +33,24 @@ def delete_images(image_ids):
     return r.json()
 
 
-if __name__ == "__main__":
-    uid = input("  用户UID (查看图片列表，留空跳过): ").strip()
-    if uid:
-        list_images(uid)
-    image_id = input("  图片ID (查看详情，留空跳过): ").strip()
-    if image_id:
-        get_image(image_id)
+APIS = {
+    "list": list_images,
+    "get": get_image,
+    "upload_link": generate_upload_link,
+    "delete": lambda ids: delete_images(ids.split(",")),
+}
 
-    if confirm("获取上传参数"):
-        generate_upload_link()
-    ids = input("  要删除的图片ID (逗号分隔，留空跳过): ").strip()
-    if ids and confirm(f"删除图片 {ids}"):
-        delete_images(ids.split(","))
+if __name__ == "__main__":
+    def _interactive():
+        uid = prompt("  用户UID (查看图片列表，留空跳过): ").strip()
+        if uid:
+            list_images(uid)
+        image_id = prompt("  图片ID (查看详情，留空跳过): ").strip()
+        if image_id:
+            get_image(image_id)
+        if confirm("获取上传参数"):
+            generate_upload_link()
+        ids = prompt("  要删除的图片ID (逗号分隔，留空跳过): ").strip()
+        if ids and confirm(f"删除图片 {ids}"):
+            delete_images(ids.split(","))
+    run_from_cli(APIS, _interactive)

@@ -1,4 +1,4 @@
-from base import LuoguClient, log, confirm
+from base import LuoguClient, confirm, prompt, run_from_cli
 
 client = LuoguClient()
 
@@ -60,7 +60,7 @@ def squad_member_quit(cid, uid):
 
 def create_contest():
     """创建比赛"""
-    name = input("比赛名称: ").strip()
+    name = prompt("比赛名称: ").strip()
     r = client.post("/fe/api/contest/new", json={"name": name})
     return r.json()
 
@@ -74,7 +74,7 @@ def edit_contest(cid):
 def edit_contest_problem(cid, pids=None, scores=None):
     """设置比赛题目"""
     if pids is None:
-        pids = input("题目ID (逗号分隔): ").strip().split(",")
+        pids = prompt("题目ID (逗号分隔): ").strip().split(",")
     if scores is None:
         scores = {p: 100 for p in pids}
     r = client.post(f"/fe/api/contest/editProblem/{cid}", json={"pids": pids, "scores": scores})
@@ -83,34 +83,49 @@ def edit_contest_problem(cid, pids=None, scores=None):
 
 def delete_contest(cid):
     """删除比赛"""
-    log("WARN", f"将删除比赛 {cid}，此操作不可逆!")
-    ans = input("确认删除? (y/N): ").strip().lower()
-    if ans != "y":
+    if not confirm(f"删除比赛 {cid}"):
         return None
     r = client.post(f"/fe/api/contest/delete/{cid}")
     return r.json()
 
 
-if __name__ == "__main__":
-    list_contests()
-    joined_contests()
-    created_contests()
+APIS = {
+    "list": list_contests,
+    "joined": joined_contests,
+    "created": created_contests,
+    "get": get_contest,
+    "get_edit": get_contest_edit,
+    "scoreboard": get_scoreboard,
+    "join": join_contest,
+    "create_squad": create_squad,
+    "squad_quit": squad_member_quit,
+    "create": create_contest,
+    "edit": edit_contest,
+    "edit_problem": edit_contest_problem,
+    "delete": delete_contest,
+}
 
-    cid = input("  测试比赛ID (留空跳过详情测试): ").strip()
-    if cid:
-        get_contest(cid)
-        get_contest_edit(cid)
-        get_scoreboard(cid)
-        if confirm(f"参加比赛 {cid}"):
-            code = input("  比赛邀请码 (留空无码): ").strip()
-            join_contest(cid, code)
-        if confirm(f"创建小队 (比赛 {cid})"):
-            create_squad(cid)
-        if confirm(f"编辑比赛 {cid}"):
-            edit_contest(cid)
-        if confirm(f"设置比赛 {cid} 题目"):
-            edit_contest_problem(cid)
-        if confirm(f"删除比赛 {cid} (不可逆)"):
-            delete_contest(cid)
-    if confirm("创建新比赛"):
-        create_contest()
+if __name__ == "__main__":
+    def _interactive():
+        list_contests()
+        joined_contests()
+        created_contests()
+        cid = prompt("  测试比赛ID (留空跳过详情测试): ").strip()
+        if cid:
+            get_contest(cid)
+            get_contest_edit(cid)
+            get_scoreboard(cid)
+            if confirm(f"参加比赛 {cid}"):
+                code = prompt("  比赛邀请码 (留空无码): ").strip()
+                join_contest(cid, code)
+            if confirm(f"创建小队 (比赛 {cid})"):
+                create_squad(cid)
+            if confirm(f"编辑比赛 {cid}"):
+                edit_contest(cid)
+            if confirm(f"设置比赛 {cid} 题目"):
+                edit_contest_problem(cid)
+            if confirm(f"删除比赛 {cid} (不可逆)"):
+                delete_contest(cid)
+        if confirm("创建新比赛"):
+            create_contest()
+    run_from_cli(APIS, _interactive)

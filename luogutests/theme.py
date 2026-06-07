@@ -1,4 +1,4 @@
-from base import LuoguClient, log, confirm
+from base import LuoguClient, confirm, prompt, run_from_cli
 
 client = LuoguClient()
 
@@ -23,7 +23,7 @@ def set_theme(tid):
 
 def create_theme():
     """创建主题"""
-    name = input("主题名称: ").strip()
+    name = prompt("主题名称: ").strip()
     body = {"name": name, "header": "", "sideNav": "", "footer": ""}
     r = client.post("/theme/edit/", json=body)
     return r.json()
@@ -31,7 +31,7 @@ def create_theme():
 
 def edit_theme(tid):
     """编辑主题"""
-    name = input("主题名称: ").strip()
+    name = prompt("主题名称: ").strip()
     body = {"name": name, "header": "", "sideNav": "", "footer": ""}
     r = client.post(f"/theme/edit/{tid}", json=body)
     return r.json()
@@ -39,24 +39,33 @@ def edit_theme(tid):
 
 def delete_theme(tid):
     """删除主题"""
-    ans = input(f"确认删除主题 {tid}? (y/N): ").strip().lower()
-    if ans != "y":
+    if not confirm(f"删除主题 {tid}"):
         return None
     r = client.post(f"/theme/delete/{tid}")
     return r.json()
 
 
-if __name__ == "__main__":
-    list_themes()
-    tid = input("  主题ID (查看详情，留空跳过): ").strip()
-    if tid:
-        get_theme(tid)
+APIS = {
+    "list": list_themes,
+    "get": get_theme,
+    "set": set_theme,
+    "create": create_theme,
+    "edit": edit_theme,
+    "delete": delete_theme,
+}
 
-    if tid and confirm(f"应用主题 {tid}"):
-        set_theme(tid)
-    if confirm("创建主题"):
-        create_theme()
-    if tid and confirm(f"编辑主题 {tid}"):
-        edit_theme(tid)
-    if tid and confirm(f"删除主题 {tid}"):
-        delete_theme(tid)
+if __name__ == "__main__":
+    def _interactive():
+        list_themes()
+        tid = prompt("  主题ID (查看详情，留空跳过): ").strip()
+        if tid:
+            get_theme(tid)
+        if tid and confirm(f"应用主题 {tid}"):
+            set_theme(tid)
+        if confirm("创建主题"):
+            create_theme()
+        if tid and confirm(f"编辑主题 {tid}"):
+            edit_theme(tid)
+        if tid and confirm(f"删除主题 {tid}"):
+            delete_theme(tid)
+    run_from_cli(APIS, _interactive)

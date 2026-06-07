@@ -81,6 +81,41 @@ def confirm(action: str) -> bool:
     return ans == "y"
 
 
+# ---------- prompt ----------
+
+def prompt(label: str) -> str:
+    """通过 log 输出提示文字，然后读取输入"""
+    log("INFO", label)
+    return input()
+
+
+# ---------- cli ----------
+
+def run_from_cli(apis: dict, interactive_fn):
+    """从命令行参数调度 API，无参数时走交互模式"""
+    import inspect
+    args = sys.argv[1:]
+    if not args:
+        interactive_fn()
+        return
+    i = 0
+    while i < len(args):
+        name = args[i]
+        if name not in apis:
+            log("ERROR", f"未知 API: {name}  (可用: {', '.join(apis)})")
+            sys.exit(1)
+        fn = apis[name]
+        sig = inspect.signature(fn)
+        params = [p for p in sig.parameters.values()
+                  if p.kind in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)]
+        required = sum(1 for p in params if p.default is inspect.Parameter.empty)
+        max_args = len(params)
+        available = len(args) - i - 1
+        n_pass = min(max(available, required), max_args)
+        fn(*args[i + 1: i + 1 + n_pass])
+        i += 1 + n_pass
+
+
 # ---------- client ----------
 
 class LuoguClient:

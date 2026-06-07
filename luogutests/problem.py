@@ -1,7 +1,6 @@
-from base import LuoguClient, log, confirm
+from base import LuoguClient, log, confirm, prompt, run_from_cli
 
 client = LuoguClient()
-
 
 
 def list_problems():
@@ -50,7 +49,7 @@ def submit_code(pid="P1001", code='print("Hello World")', lang=7, enable_o2=0):
 
 def submit_translation(pid="P1001"):
     """提交翻译"""
-    translation = input("请输入翻译内容: ").strip()
+    translation = prompt("请输入翻译内容: ").strip()
     r = client.post(f"/fe/api/problem/translate/{pid}", json={"translation": translation})
     return r
 
@@ -58,7 +57,7 @@ def submit_translation(pid="P1001"):
 def create_problem():
     """创建题目 (交互式)"""
     log("WARN", "此操作会创建新题目，请确认")
-    title = input("题目标题: ").strip()
+    title = prompt("题目标题: ").strip()
     r = client.post("/fe/api/problem/new", json={"title": title})
     return r.json()
 
@@ -85,37 +84,52 @@ def transfer_problem(pid):
 
 def delete_problem(pid):
     """删除题目"""
-    log("WARN", f"将删除题目 {pid}，此操作不可逆!")
-    ans = input("确认删除? (y/N): ").strip().lower()
-    if ans != "y":
+    if not confirm(f"删除题目 {pid}"):
         return None
     r = client.post(f"/fe/api/problem/delete/{pid}")
     return r.json()
 
 
-if __name__ == "__main__":
-    list_problems()
-    created_problems()
-    get_problem()
-    get_solutions()
+APIS = {
+    "list": list_problems,
+    "created": created_problems,
+    "get": get_problem,
+    "solutions": get_solutions,
+    "bookmark": bookmark_problem,
+    "remove_bookmark": remove_bookmark,
+    "submit": submit_code,
+    "translate": submit_translation,
+    "create": create_problem,
+    "edit": edit_problem,
+    "edit_testcase": edit_testcase,
+    "transfer": transfer_problem,
+    "delete": delete_problem,
+}
 
-    if confirm("收藏题目 P1001"):
-        bookmark_problem("P1001")
-    if confirm("取消收藏 P1001"):
-        remove_bookmark("P1001")
-    if confirm("提交代码到 P1001"):
-        submit_code()
-    if confirm("提交翻译到 P1001"):
-        submit_translation("P1001")
-    if confirm("创建新题目"):
-        create_problem()
-    pid = input("  测试编辑/测试数据/转移/删除的题目ID (留空跳过): ").strip()
-    if pid:
-        if confirm(f"编辑题目 {pid}"):
-            edit_problem(pid)
-        if confirm(f"编辑测试数据 {pid}"):
-            edit_testcase(pid)
-        if confirm(f"转移题目 {pid}"):
-            transfer_problem(pid)
-        if confirm(f"删除题目 {pid} (不可逆)"):
-            delete_problem(pid)
+if __name__ == "__main__":
+    def _interactive():
+        list_problems()
+        created_problems()
+        get_problem()
+        get_solutions()
+        if confirm("收藏题目 P1001"):
+            bookmark_problem("P1001")
+        if confirm("取消收藏 P1001"):
+            remove_bookmark("P1001")
+        if confirm("提交代码到 P1001"):
+            submit_code()
+        if confirm("提交翻译到 P1001"):
+            submit_translation("P1001")
+        if confirm("创建新题目"):
+            create_problem()
+        pid = prompt("  测试编辑/测试数据/转移/删除的题目ID (留空跳过): ").strip()
+        if pid:
+            if confirm(f"编辑题目 {pid}"):
+                edit_problem(pid)
+            if confirm(f"编辑测试数据 {pid}"):
+                edit_testcase(pid)
+            if confirm(f"转移题目 {pid}"):
+                transfer_problem(pid)
+            if confirm(f"删除题目 {pid} (不可逆)"):
+                delete_problem(pid)
+    run_from_cli(APIS, _interactive)

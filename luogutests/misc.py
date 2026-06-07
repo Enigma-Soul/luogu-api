@@ -1,4 +1,4 @@
-from base import LuoguClient, log, confirm
+from base import LuoguClient, confirm, prompt, run_from_cli
 
 client = LuoguClient()
 
@@ -59,22 +59,35 @@ def paint(token, x, y, color):
     return r.json()
 
 
-if __name__ == "__main__":
-    get_config()
-    get_tags()
-    get_ranking()
-    get_elo_ranking()
-    get_notifications()
-    get_paintboard()
+APIS = {
+    "config": get_config,
+    "tags": get_tags,
+    "ranking": get_ranking,
+    "elo_ranking": get_elo_ranking,
+    "notifications": get_notifications,
+    "ad": get_ad,
+    "paintboard": get_paintboard,
+    "reset_paintboard": reset_paintboard_token,
+    "paint": paint,
+}
 
-    if confirm("重置画板 Token"):
-        reset_paintboard_token()
-    if confirm("在画板上绘制"):
-        token = input("  Token: ").strip()
-        x = int(input("  X: ").strip())
-        y = int(input("  Y: ").strip())
-        color = int(input("  颜色: ").strip())
-        paint(token, x, y, color)
-    ad_id = input("  广告ID (留空跳过): ").strip()
-    if ad_id:
-        get_ad(ad_id)
+if __name__ == "__main__":
+    def _interactive():
+        get_config()
+        get_tags()
+        get_ranking()
+        get_elo_ranking()
+        get_notifications()
+        get_paintboard()
+        if confirm("重置画板 Token"):
+            reset_paintboard_token()
+        if confirm("在画板上绘制"):
+            token = prompt("  Token: ").strip()
+            x = int(prompt("  X: ").strip())
+            y = int(prompt("  Y: ").strip())
+            color = int(prompt("  颜色: ").strip())
+            paint(token, x, y, color)
+        ad_id = prompt("  广告ID (留空跳过): ").strip()
+        if ad_id:
+            get_ad(ad_id)
+    run_from_cli(APIS, _interactive)

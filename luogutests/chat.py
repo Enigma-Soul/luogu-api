@@ -1,4 +1,4 @@
-from base import LuoguClient, log, confirm
+from base import LuoguClient, confirm, prompt, run_from_cli
 
 client = LuoguClient()
 
@@ -33,17 +33,26 @@ def clear_unread(uid):
     return r.json()
 
 
-if __name__ == "__main__":
-    list_conversations()
-    uid = input("  对方UID (查看私信记录，留空跳过): ").strip()
-    if uid:
-        get_messages(uid)
+APIS = {
+    "list": list_conversations,
+    "messages": get_messages,
+    "send": lambda uid, content: send_message(int(uid), content),
+    "delete": lambda msg_id: delete_message(int(msg_id)),
+    "clear_unread": lambda uid: clear_unread(int(uid)),
+}
 
-    if uid and confirm(f"发送私信给 {uid}"):
-        content = input("  内容: ").strip()
-        send_message(int(uid), content)
-    if uid and confirm(f"清除与 {uid} 的未读"):
-        clear_unread(int(uid))
-    msg_id = input("  要删除的消息ID (留空跳过): ").strip()
-    if msg_id and confirm(f"删除消息 {msg_id}"):
-        delete_message(int(msg_id))
+if __name__ == "__main__":
+    def _interactive():
+        list_conversations()
+        uid = prompt("  对方UID (查看私信记录，留空跳过): ").strip()
+        if uid:
+            get_messages(uid)
+        if uid and confirm(f"发送私信给 {uid}"):
+            content = prompt("  内容: ").strip()
+            send_message(int(uid), content)
+        if uid and confirm(f"清除与 {uid} 的未读"):
+            clear_unread(int(uid))
+        msg_id = prompt("  要删除的消息ID (留空跳过): ").strip()
+        if msg_id and confirm(f"删除消息 {msg_id}"):
+            delete_message(int(msg_id))
+    run_from_cli(APIS, _interactive)

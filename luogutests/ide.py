@@ -1,4 +1,4 @@
-from base import LuoguClient, log, confirm
+from base import LuoguClient, confirm, prompt, run_from_cli
 
 client = LuoguClient()
 
@@ -18,6 +18,12 @@ def ide_submit(code='print("Hello World")', lang=7, input_text="", o2=False):
     return r.json()
 
 
+APIS = {
+    "submit": ide_submit,
+}
+
 if __name__ == "__main__":
-    if confirm("提交代码到在线 IDE"):
-        ide_submit()
+    def _interactive():
+        if confirm("提交代码到在线 IDE"):
+            ide_submit()
+    run_from_cli(APIS, _interactive)

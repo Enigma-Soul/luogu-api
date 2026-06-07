@@ -191,7 +191,7 @@
 /api/article/batchEdit:
   post:
     tags: [专栏]
-    summary: 批量修改文章
+    summary: 批量修改文章 (未测试)
     requestBody:
       content:
         application/json:
@@ -234,7 +234,7 @@
               properties:
                 lid: { type: string }
 
-/api/article/vote/{lid}:
+/article/{lid}/vote:
   post:
     tags: [专栏]
     summary: 赞/踩文章
@@ -248,6 +248,11 @@
         in: query
         required: true
         schema: { type: integer }
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
     responses:
       "200":
         description: 投票成功
@@ -262,7 +267,7 @@
 /api/article/requestPromotion/{lid}:
   post:
     tags: [专栏]
-    summary: 申请全站推荐
+    summary: 申请全站推荐 (未测试)
     parameters:
       - name: lid
         in: path
@@ -275,7 +280,7 @@
 /api/article/withdrawPromotion/{lid}:
   post:
     tags: [专栏]
-    summary: 撤回全站推荐
+    summary: 撤回全站推荐 (未测试)
     parameters:
       - name: lid
         in: path
@@ -354,6 +359,11 @@
         in: path
         required: true
         schema: { type: integer }
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
     responses:
       "200":
         description: 删除成功

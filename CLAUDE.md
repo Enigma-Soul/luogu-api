@@ -20,6 +20,13 @@ uv run luogutest
 # Run a single module
 uv run python luogutests/problem.py
 
+# Run specific APIs within a module
+uv run python luogutests/article.py list get abd34o1s
+
+# Via entry point
+luogutest article list mine
+luogutest article get abd34o1s
+
 # Commit count before auto-push
 git log --oneline origin/develop..HEAD | wc -l
 ```
