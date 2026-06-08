@@ -94,9 +94,15 @@ def prompt(label: str) -> str:
 def run_from_cli(apis: dict, interactive_fn):
     """从命令行参数调度 API，无参数时走交互模式"""
     import inspect
+    # 自动检测模块名
+    frame = inspect.currentframe().f_back
+    module_name = os.path.splitext(os.path.basename(frame.f_globals.get("__file__", "")))[0]
     args = sys.argv[1:]
     if not args:
-        interactive_fn()
+        try:
+            interactive_fn()
+        except Exception as e:
+            log("ERROR", f"交互模式异常: {e}")
         return
     i = 0
     while i < len(args):
@@ -112,8 +118,32 @@ def run_from_cli(apis: dict, interactive_fn):
         max_args = len(params)
         available = len(args) - i - 1
         n_pass = min(max(available, required), max_args)
-        fn(*args[i + 1: i + 1 + n_pass])
+        try:
+            result = fn(*args[i + 1: i + 1 + n_pass])
+            save_output(module_name, name, result)
+        except Exception as e:
+            log("ERROR", f"{name} 失败: {e}")
         i += 1 + n_pass
+
+
+# ---------- output ----------
+
+_OUTPUT_DIR = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "output"))
+
+
+def save_output(module_name: str, api_name: str, data):
+    """保存 API 输出到 output/<module>/<api>.json 或 .txt"""
+    out_dir = os.path.join(_OUTPUT_DIR, module_name)
+    os.makedirs(out_dir, exist_ok=True)
+    if isinstance(data, (dict, list)):
+        path = os.path.join(out_dir, f"{api_name}.json")
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+    else:
+        path = os.path.join(out_dir, f"{api_name}.txt")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(str(data) if data is not None else "")
+    log("INFO", f"已保存到 {path}")
 
 
 # ---------- client ----------
@@ -236,6 +266,10 @@ class LuoguClient:
         if code is not None and code != 200:
             log("WARN", f"code={code} message={j.get('message', '')}")
         return j.get("currentData", j)
+
+    def warn(self, msg):
+        """记录警告信息"""
+        log("WARN", msg)
 
     def captcha(self) -> str:
         p = os.path.join(os.path.dirname(os.path.abspath(__file__)), "captcha.jpg")

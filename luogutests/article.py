@@ -76,8 +76,7 @@ def edit_article(lid):
 
 def delete_article(lid):
     """删除专栏"""
-    if not confirm(f"删除专栏 {lid}"):
-        return None
+    client.warn(f"将删除专栏 {lid}")
     r = client.post(f"/article/{lid}/delete", json={})
     return r.json()
 

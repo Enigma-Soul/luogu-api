@@ -1,4 +1,4 @@
-from base import LuoguClient, log, confirm, prompt, run_from_cli
+from base import LuoguClient, confirm, prompt, run_from_cli
 
 client = LuoguClient()
 
@@ -56,7 +56,7 @@ def submit_translation(pid="P1001"):
 
 def create_problem():
     """创建题目 (交互式)"""
-    log("WARN", "此操作会创建新题目，请确认")
+    client.warn("此操作会创建新题目，请确认")
     title = prompt("题目标题: ").strip()
     r = client.post("/fe/api/problem/new", json={"title": title})
     return r.json()
@@ -64,7 +64,7 @@ def create_problem():
 
 def edit_problem(pid):
     """编辑题目"""
-    log("WARN", f"将编辑题目 {pid}")
+    client.warn(f"将编辑题目 {pid}")
     r = client.post(f"/fe/api/problem/edit/{pid}", json={"settings": {}})
     return r.json()
 
@@ -77,15 +77,14 @@ def edit_testcase(pid):
 
 def transfer_problem(pid):
     """转移/克隆题目"""
-    log("WARN", f"将转移题目 {pid}")
+    client.warn(f"将转移题目 {pid}")
     r = client.post(f"/fe/api/problem/transfer/{pid}", json={})
     return r.json()
 
 
 def delete_problem(pid):
     """删除题目"""
-    if not confirm(f"删除题目 {pid}"):
-        return None
+    client.warn(f"将删除题目 {pid}")
     r = client.post(f"/fe/api/problem/delete/{pid}")
     return r.json()
 

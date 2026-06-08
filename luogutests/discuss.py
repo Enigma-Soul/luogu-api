@@ -43,8 +43,7 @@ def reply_post(post_id):
 
 def delete_post(post_id):
     """删除帖子"""
-    if not confirm(f"删除帖子 {post_id}"):
-        return None
+    client.warn(f"将删除帖子 {post_id}")
     r = client.delete(f"/api/discuss/delete/{post_id}")
     return r.json()
 

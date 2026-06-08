@@ -39,8 +39,7 @@ def edit_theme(tid):
 
 def delete_theme(tid):
     """删除主题"""
-    if not confirm(f"删除主题 {tid}"):
-        return None
+    client.warn(f"将删除主题 {tid}")
     r = client.post(f"/theme/delete/{tid}")
     return r.json()
 

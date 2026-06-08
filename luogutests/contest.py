@@ -83,8 +83,7 @@ def edit_contest_problem(cid, pids=None, scores=None):
 
 def delete_contest(cid):
     """删除比赛"""
-    if not confirm(f"删除比赛 {cid}"):
-        return None
+    client.warn(f"将删除比赛 {cid}")
     r = client.post(f"/fe/api/contest/delete/{cid}")
     return r.json()
 
