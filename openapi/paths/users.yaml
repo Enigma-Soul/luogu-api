@@ -15,6 +15,28 @@
             schema:
               $ref: "../openapi.yaml#/components/schemas/LentilleDataResponse"
 
+/api/user/info/{uid}:
+  get:
+    tags: [用户]
+    summary: 获取用户（旧）
+    description: 旧接口，能访问不可见（如被封禁）的用户，但不返回做题热度图和等级分历史
+    parameters:
+      - name: uid
+        in: path
+        required: true
+        schema: { type: integer }
+    responses:
+      "200":
+        description: 用户详情（旧）
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  type: object
+                  description: LegacyUserDetails & UserStats & Maybe<LegacySelfDetails>
+
 /api/user/search:
   get:
     tags: [用户]
