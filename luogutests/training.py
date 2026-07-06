@@ -76,8 +76,7 @@ def clone_training(tid):
 
 def delete_training(tid):
     """删除题单"""
-    if not confirm(f"删除题单 {tid}"):
-        return None
+    client.warn(f"将删除题单 {tid}")
     r = client.post(f"/api/training/delete/{tid}")
     return r.json()
 

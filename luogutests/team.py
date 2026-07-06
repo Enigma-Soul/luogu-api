@@ -48,8 +48,7 @@ def join_team(tid):
 
 def exit_team(tid):
     """退出团队"""
-    if not confirm(f"退出团队 {tid}"):
-        return None
+    client.warn(f"将退出团队 {tid}")
     r = client.post(f"/api/team/exit/{tid}")
     return r.json()
 
@@ -70,8 +69,7 @@ def edit_team(tid):
 
 def set_team_master(tid, uid):
     """转让团队"""
-    if not confirm(f"转让团队 {tid} 给用户 {uid}"):
-        return None
+    client.warn(f"将转让团队 {tid} 给用户 {uid}")
     r = client.post(f"/api/team/setMaster/{tid}", json={"uid": uid})
     return r.json()
 

@@ -51,8 +51,7 @@ def edit_blog(blog_id):
 
 def delete_blog(blog_id):
     """删除博客"""
-    if not confirm(f"删除博客 {blog_id}"):
-        return None
+    client.warn(f"将删除博客 {blog_id}")
     r = client.post(f"/api/blog/delete/{blog_id}")
     return r.json()
 

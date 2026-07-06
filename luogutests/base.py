@@ -94,9 +94,15 @@ def prompt(label: str) -> str:
 def run_from_cli(apis: dict, interactive_fn):
     """从命令行参数调度 API，无参数时走交互模式"""
     import inspect
+    # 自动检测模块名
+    frame = inspect.currentframe().f_back
+    module_name = os.path.splitext(os.path.basename(frame.f_globals.get("__file__", "")))[0]
     args = sys.argv[1:]
     if not args:
-        interactive_fn()
+        try:
+            interactive_fn()
+        except Exception as e:
+            log("ERROR", f"交互模式异常: {e}")
         return
     i = 0
     while i < len(args):
@@ -112,8 +118,32 @@ def run_from_cli(apis: dict, interactive_fn):
         max_args = len(params)
         available = len(args) - i - 1
         n_pass = min(max(available, required), max_args)
-        fn(*args[i + 1: i + 1 + n_pass])
+        try:
+            result = fn(*args[i + 1: i + 1 + n_pass])
+            save_output(module_name, name, result)
+        except Exception as e:
+            log("ERROR", f"{name} 失败: {e}")
         i += 1 + n_pass
+
+
+# ---------- output ----------
+
+_OUTPUT_DIR = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "output"))
+
+
+def save_output(module_name: str, api_name: str, data):
+    """保存 API 输出到 output/<module>/<api>.json 或 .txt"""
+    out_dir = os.path.join(_OUTPUT_DIR, module_name)
+    os.makedirs(out_dir, exist_ok=True)
+    if isinstance(data, (dict, list)):
+        path = os.path.join(out_dir, f"{api_name}.json")
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+    else:
+        path = os.path.join(out_dir, f"{api_name}.txt")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(str(data) if data is not None else "")
+    log("INFO", f"已保存到 {path}")
 
 
 # ---------- client ----------
@@ -164,78 +194,68 @@ class LuoguClient:
             404: "Not Found", 429: "Too Many Requests",
         }
         label = labels.get(code)
-        if not label:
+        if label is None:
             if 300 <= code < 400:
                 label = "Redirect"
             elif 400 <= code < 500:
                 label = "Client Error"
             elif 500 <= code < 600:
                 label = "Server Error"
-        msg = str(code)
-        if label:
-            msg += f" {label}"
+        msg = f"{code} {label}" if label else str(code)
         if 200 <= code < 300:
-            log("RESP", msg)
+            level = "RESP"
         elif 300 <= code < 400:
-            log("WARN", msg)
+            level = "WARN"
         else:
-            log("ERROR", msg)
+            level = "ERROR"
+        log(level, msg)
+
+    def _request(self, method: str, path: str, with_csrf: bool = False, **kw) -> requests.Response:
+        """统一处理 GET/POST/DELETE：日志、异常捕获、状态码；with_csrf 时注入 csrf+referer 头"""
+        if with_csrf:
+            h = kw.pop("headers", {})
+            h["x-csrf-token"] = self.csrf
+            h["referer"] = "https://www.luogu.com.cn/"
+            kw["headers"] = h
+        log("INFO", f"{method} {path}")
+        try:
+            r = getattr(self.session, method.lower())(BASE_URL + path, **kw)
+        except requests.RequestException as e:
+            log("ERROR", str(e))
+            raise
+        self._log_resp(r)
+        return r
 
     def get(self, path: str, **kw) -> requests.Response:
-        log("INFO", f"GET {path}")
-        try:
-            r = self.session.get(BASE_URL + path, **kw)
-        except requests.RequestException as e:
-            log("ERROR", str(e))
-            raise
-        self._log_resp(r)
-        return r
+        return self._request("GET", path, **kw)
 
     def post(self, path: str, **kw) -> requests.Response:
-        h = kw.pop("headers", {})
-        h["x-csrf-token"] = self.csrf
-        h["referer"] = "https://www.luogu.com.cn/"
-        log("INFO", f"POST {path}")
-        try:
-            r = self.session.post(BASE_URL + path, headers=h, **kw)
-        except requests.RequestException as e:
-            log("ERROR", str(e))
-            raise
-        self._log_resp(r)
-        return r
+        return self._request("POST", path, with_csrf=True, **kw)
 
     def delete(self, path: str, **kw) -> requests.Response:
-        h = kw.pop("headers", {})
-        h["x-csrf-token"] = self.csrf
-        h["referer"] = "https://www.luogu.com.cn/"
-        log("INFO", f"DELETE {path}")
-        try:
-            r = self.session.delete(BASE_URL + path, headers=h, **kw)
-        except requests.RequestException as e:
-            log("ERROR", str(e))
-            raise
-        self._log_resp(r)
-        return r
+        return self._request("DELETE", path, with_csrf=True, **kw)
+
+    def _unwrap(self, r: requests.Response, key: str) -> dict:
+        """解析响应 JSON，code 非 200 时告警，返回 j[key]（缺失则回退整个响应）"""
+        j = r.json()
+        code = j.get("code")
+        if code is not None and code != 200:
+            log("WARN", f"code={code} message={j.get('message', '')}")
+        return j.get(key, j)
 
     def lentille(self, path: str, **kw) -> dict:
         h = kw.pop("headers", {})
         h["x-lentille-request"] = "content-only"
-        r = self.get(path, headers=h, **kw)
-        j = r.json()
-        code = j.get("code")
-        if code is not None and code != 200:
-            log("WARN", f"code={code} message={j.get('message', '')}")
-        return j.get("data", j)
+        return self._unwrap(self.get(path, headers=h, **kw), "data")
 
     def content(self, path: str, **kw) -> dict:
         p = kw.pop("params", {})
         p["_contentOnly"] = "1"
-        r = self.get(path, params=p, **kw)
-        j = r.json()
-        code = j.get("code")
-        if code is not None and code != 200:
-            log("WARN", f"code={code} message={j.get('message', '')}")
-        return j.get("currentData", j)
+        return self._unwrap(self.get(path, params=p, **kw), "currentData")
+
+    def warn(self, msg):
+        """记录警告信息"""
+        log("WARN", msg)
 
     def captcha(self) -> str:
         p = os.path.join(os.path.dirname(os.path.abspath(__file__)), "captcha.jpg")

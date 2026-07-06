@@ -9,6 +9,18 @@ def get_user(uid):
     return data
 
 
+def get_user_old(uid):
+    """获取用户（旧接口，可访问不可见用户）"""
+    r = client.get(f"/api/user/info/{uid}")
+    return r.json()
+
+
+def get_elo(user):
+    """获取历史等级分"""
+    r = client.get("/api/rating/elo", params={"user": user, "page": 1})
+    return r.json()
+
+
 def search_user(keyword):
     """搜索用户"""
     r = client.get("/api/user/search", params={"keyword": keyword})
@@ -114,6 +126,8 @@ def unbind_openid(openid_id):
 
 APIS = {
     "get": get_user,
+    "get_old": get_user_old,
+    "elo": get_elo,
     "search": search_user,
     "practice": get_practice,
     "followings": get_followings,
@@ -137,6 +151,8 @@ if __name__ == "__main__":
         uid = prompt("  用户UID (默认查看自己，留空跳过): ").strip()
         if uid:
             get_user(uid)
+            get_user_old(uid)
+            get_elo(uid)
             get_practice(uid)
             get_followings(uid)
             get_followers(uid)

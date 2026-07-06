@@ -9,3 +9,4 @@ captcha.jpg
 .venv
 .python-verson
 uv.lock
+output/

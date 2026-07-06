@@ -9,6 +9,18 @@ def list_articles():
     return data
 
 
+def find_articles(user):
+    """列出用户文章"""
+    r = client.get("/api/article/find", params={"user": user, "page": 1})
+    return r.json()
+
+
+def favored_articles():
+    """列出收藏的文章"""
+    r = client.get("/article/favored", params={"page": 1})
+    return r.json()
+
+
 def my_articles():
     """获取我的专栏"""
     data = client.lentille("/article/mine", params={"page": 1})
@@ -76,8 +88,7 @@ def edit_article(lid):
 
 def delete_article(lid):
     """删除专栏"""
-    if not confirm(f"删除专栏 {lid}"):
-        return None
+    client.warn(f"将删除专栏 {lid}")
     r = client.post(f"/article/{lid}/delete", json={})
     return r.json()
 
@@ -135,6 +146,8 @@ def delete_article_reply(lid, reply_id):
 
 APIS = {
     "list": list_articles,
+    "find": find_articles,
+    "favored": favored_articles,
     "mine": my_articles,
     "get": get_article,
     "collection": article_collection,
@@ -157,6 +170,10 @@ if __name__ == "__main__":
     def _interactive():
         list_articles()
         my_articles()
+        favored_articles()
+        find_uid = prompt("  列出某用户的专栏，输入UID (留空跳过): ").strip()
+        if find_uid:
+            find_articles(find_uid)
 
         lid = None
         if confirm("创建专栏"):
