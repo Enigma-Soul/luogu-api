@@ -15,6 +15,39 @@
             schema:
               $ref: "../openapi.yaml#/components/schemas/LentilleDataResponse"
 
+/api/article/find:
+  get:
+    tags: [专栏]
+    summary: 列出用户文章
+    parameters:
+      - name: user
+        in: query
+        required: true
+        schema: { type: integer }
+      - $ref: "../openapi.yaml#/components/parameters/Page"
+      - name: category
+        in: query
+        schema: { type: integer }
+      - name: ascending
+        in: query
+        schema: { type: boolean }
+      - name: promoted
+        in: query
+        schema: { type: boolean }
+      - name: title
+        in: query
+        schema: { type: string }
+    responses:
+      "200":
+        description: 用户文章列表
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                articles:
+                  $ref: "../openapi.yaml#/components/schemas/List"
+
 /article/mine:
   get:
     tags: [专栏]
@@ -43,6 +76,23 @@
           application/json:
             schema:
               $ref: "../openapi.yaml#/components/schemas/LentilleDataResponse"
+
+/article/favored:
+  get:
+    tags: [专栏]
+    summary: 列出收藏的文章
+    parameters:
+      - $ref: "../openapi.yaml#/components/parameters/Page"
+    responses:
+      "200":
+        description: 收藏文章列表
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                favorites:
+                  $ref: "../openapi.yaml#/components/schemas/List"
 
 /article/{lid}:
   get:
