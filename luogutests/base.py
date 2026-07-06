@@ -194,78 +194,64 @@ class LuoguClient:
             404: "Not Found", 429: "Too Many Requests",
         }
         label = labels.get(code)
-        if not label:
+        if label is None:
             if 300 <= code < 400:
                 label = "Redirect"
             elif 400 <= code < 500:
                 label = "Client Error"
             elif 500 <= code < 600:
                 label = "Server Error"
-        msg = str(code)
-        if label:
-            msg += f" {label}"
+        msg = f"{code} {label}" if label else str(code)
         if 200 <= code < 300:
-            log("RESP", msg)
+            level = "RESP"
         elif 300 <= code < 400:
-            log("WARN", msg)
+            level = "WARN"
         else:
-            log("ERROR", msg)
+            level = "ERROR"
+        log(level, msg)
+
+    def _request(self, method: str, path: str, with_csrf: bool = False, **kw) -> requests.Response:
+        """统一处理 GET/POST/DELETE：日志、异常捕获、状态码；with_csrf 时注入 csrf+referer 头"""
+        if with_csrf:
+            h = kw.pop("headers", {})
+            h["x-csrf-token"] = self.csrf
+            h["referer"] = "https://www.luogu.com.cn/"
+            kw["headers"] = h
+        log("INFO", f"{method} {path}")
+        try:
+            r = getattr(self.session, method.lower())(BASE_URL + path, **kw)
+        except requests.RequestException as e:
+            log("ERROR", str(e))
+            raise
+        self._log_resp(r)
+        return r
 
     def get(self, path: str, **kw) -> requests.Response:
-        log("INFO", f"GET {path}")
-        try:
-            r = self.session.get(BASE_URL + path, **kw)
-        except requests.RequestException as e:
-            log("ERROR", str(e))
-            raise
-        self._log_resp(r)
-        return r
+        return self._request("GET", path, **kw)
 
     def post(self, path: str, **kw) -> requests.Response:
-        h = kw.pop("headers", {})
-        h["x-csrf-token"] = self.csrf
-        h["referer"] = "https://www.luogu.com.cn/"
-        log("INFO", f"POST {path}")
-        try:
-            r = self.session.post(BASE_URL + path, headers=h, **kw)
-        except requests.RequestException as e:
-            log("ERROR", str(e))
-            raise
-        self._log_resp(r)
-        return r
+        return self._request("POST", path, with_csrf=True, **kw)
 
     def delete(self, path: str, **kw) -> requests.Response:
-        h = kw.pop("headers", {})
-        h["x-csrf-token"] = self.csrf
-        h["referer"] = "https://www.luogu.com.cn/"
-        log("INFO", f"DELETE {path}")
-        try:
-            r = self.session.delete(BASE_URL + path, headers=h, **kw)
-        except requests.RequestException as e:
-            log("ERROR", str(e))
-            raise
-        self._log_resp(r)
-        return r
+        return self._request("DELETE", path, with_csrf=True, **kw)
+
+    def _unwrap(self, r: requests.Response, key: str) -> dict:
+        """解析响应 JSON，code 非 200 时告警，返回 j[key]（缺失则回退整个响应）"""
+        j = r.json()
+        code = j.get("code")
+        if code is not None and code != 200:
+            log("WARN", f"code={code} message={j.get('message', '')}")
+        return j.get(key, j)
 
     def lentille(self, path: str, **kw) -> dict:
         h = kw.pop("headers", {})
         h["x-lentille-request"] = "content-only"
-        r = self.get(path, headers=h, **kw)
-        j = r.json()
-        code = j.get("code")
-        if code is not None and code != 200:
-            log("WARN", f"code={code} message={j.get('message', '')}")
-        return j.get("data", j)
+        return self._unwrap(self.get(path, headers=h, **kw), "data")
 
     def content(self, path: str, **kw) -> dict:
         p = kw.pop("params", {})
         p["_contentOnly"] = "1"
-        r = self.get(path, params=p, **kw)
-        j = r.json()
-        code = j.get("code")
-        if code is not None and code != 200:
-            log("WARN", f"code={code} message={j.get('message', '')}")
-        return j.get("currentData", j)
+        return self._unwrap(self.get(path, params=p, **kw), "currentData")
 
     def warn(self, msg):
         """记录警告信息"""
