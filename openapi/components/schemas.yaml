@@ -265,20 +265,24 @@ ProblemSet:
     marked: { type: boolean }
     markCount: { type: integer }
 
-TrainingProblem:
-  type: object
-  properties:
-    pid: { type: string }
-    type: { type: string }
-    name: { type: string }
-    difficulty: { type: integer, nullable: true }
-    submitted: { type: boolean }
-    accepted: { type: boolean }
-    tags: { type: array, items: { type: integer } }
-    totalSubmit: { type: integer }
-    totalAccepted: { type: integer }
-    flag: { type: integer }
-    provider: {}
+LegacyProblemSummary:
+  allOf:
+    - $ref: "./schemas.yaml#/ProblemSummary"
+    - type: object
+      properties:
+        fullScore: { type: integer }
+
+# @deprecated
+LegacyProblem:
+  allOf:
+    - $ref: "./schemas.yaml#/LegacyProblemSummary"
+    - type: object
+      properties:
+        tags: { type: array, items: { type: integer } }
+        wantsTranslation: { type: boolean }
+        totalSubmit: { type: integer }
+        totalAccepted: { type: integer }
+        flag: { type: integer }
 
 ProblemSetDetails:
   allOf:
@@ -289,14 +293,23 @@ ProblemSetDetails:
         problems:
           type: array
           items:
-            $ref: "./schemas.yaml#/TrainingProblem"
-        userScore: {}
-
-ProblemSetCategory:
-  type: object
-  properties:
-    key: { type: string }
-    name: { type: string }
+            type: object
+            properties:
+              problem:
+                $ref: "./schemas.yaml#/LegacyProblem"
+        userScore:
+          type: object
+          nullable: true
+          properties:
+            user:
+              $ref: "./schemas.yaml#/UserSummary"
+            totalScore: { type: integer }
+            score:
+              type: object
+              additionalProperties: { type: integer, nullable: true }
+            status:
+              type: object
+              additionalProperties: { type: boolean }
 
 ProblemSetSettings:
   type: object

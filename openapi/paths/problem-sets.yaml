@@ -17,24 +17,17 @@
           application/json:
             schema:
               allOf:
-                - $ref: "../openapi.yaml#/components/schemas/LentilleDataResponse"
+                - $ref: "../openapi.yaml#/components/schemas/DataResponse"
                 - type: object
                   properties:
-                    data:
+                    currentData:
                       type: object
                       properties:
                         trainings:
                           $ref: "../openapi.yaml#/components/schemas/List"
-                        acCounts:
+                        acceptedCounts:
                           type: object
                           additionalProperties: { type: integer }
-                        type:
-                          type: string
-                          description: 当前分类 key
-                        categories:
-                          type: array
-                          items:
-                            $ref: "../openapi.yaml#/components/schemas/ProblemSetCategory"
 
 /api/user/createdTrainings:
   get:
@@ -71,14 +64,25 @@
           application/json:
             schema:
               allOf:
-                - $ref: "../openapi.yaml#/components/schemas/LentilleDataResponse"
+                - $ref: "../openapi.yaml#/components/schemas/DataResponse"
                 - type: object
                   properties:
-                    data:
+                    currentData:
                       type: object
                       properties:
                         training:
                           $ref: "../openapi.yaml#/components/schemas/ProblemSetDetails"
+                        trainingProblems:
+                          type: object
+                          properties:
+                            result:
+                              type: array
+                              items: {}
+                            perPage:
+                              type: integer
+                              nullable: true
+                            count:
+                              type: integer
                         canEdit:
                           type: boolean
                         privilegedTeams:

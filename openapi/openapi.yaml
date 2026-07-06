@@ -93,7 +93,7 @@ paths:
   /fe/api/problem/transfer/{pid}:
     $ref: "./paths/problems.yaml#/~1fe~1api~1problem~1transfer~1{pid}"
   /fe/api/problem/delete/{id}:
-    $ref: "./paths/problems.yaml#/~1fe~1api~1problem~1delete~1{pid}"
+    $ref: "./paths/problems.yaml#/~1fe~1api~1problem~1delete~1{id}"
 
   # 题单
   /training/list:
@@ -194,10 +194,14 @@ paths:
   # 用户
   /user/{uid}:
     $ref: "./paths/users.yaml#/~1user~1{uid}"
+  /api/user/info/{uid}:
+    $ref: "./paths/users.yaml#/~1api~1user~1info~1{uid}"
   /api/user/search:
     $ref: "./paths/users.yaml#/~1api~1user~1search"
   /user/{uid}/practice:
     $ref: "./paths/users.yaml#/~1user~1{uid}~1practice"
+  /api/rating/elo:
+    $ref: "./paths/users.yaml#/~1api~1rating~1elo"
   /api/user/followings:
     $ref: "./paths/users.yaml#/~1api~1user~1followings"
   /api/user/followers:
@@ -276,26 +280,32 @@ paths:
   # 专栏
   /article:
     $ref: "./paths/articles.yaml#/~1article"
+  /api/article/find:
+    $ref: "./paths/articles.yaml#/~1api~1article~1find"
   /article/mine:
     $ref: "./paths/articles.yaml#/~1article~1mine"
+  /article/favored:
+    $ref: "./paths/articles.yaml#/~1article~1favored"
   /article/{lid}:
     $ref: "./paths/articles.yaml#/~1article~1{lid}"
   /article/collection/{id}:
     $ref: "./paths/articles.yaml#/~1article~1collection~1{id}"
   /article/{lid}/availableCollection:
     $ref: "./paths/articles.yaml#/~1article~1{lid}~1availableCollection"
-  /api/article/new:
-    $ref: "./paths/articles.yaml#/~1api~1article~1new"
-  /api/article/edit/{lid}:
-    $ref: "./paths/articles.yaml#/~1api~1article~1edit~1{lid}"
-  /api/article/delete/{lid}:
-    $ref: "./paths/articles.yaml#/~1api~1article~1delete~1{lid}"
+  /article/_newSubmit:
+    $ref: "./paths/articles.yaml#/~1article~1_newSubmit"
+  /article/{lid}/edit:
+    $ref: "./paths/articles.yaml#/~1article~1{lid}~1edit"
+  /article/{lid}/editSubmit:
+    $ref: "./paths/articles.yaml#/~1article~1{lid}~1editSubmit"
+  /article/{lid}/delete:
+    $ref: "./paths/articles.yaml#/~1article~1{lid}~1delete"
   /api/article/batchEdit:
     $ref: "./paths/articles.yaml#/~1api~1article~1batchEdit"
-  /api/article/favor/{lid}:
-    $ref: "./paths/articles.yaml#/~1api~1article~1favor~1{lid}"
-  /api/article/vote/{lid}:
-    $ref: "./paths/articles.yaml#/~1api~1article~1vote~1{lid}"
+  /article/{lid}/favor:
+    $ref: "./paths/articles.yaml#/~1article~1{lid}~1favor"
+  /article/{lid}/vote:
+    $ref: "./paths/articles.yaml#/~1article~1{lid}~1vote"
   /api/article/requestPromotion/{lid}:
     $ref: "./paths/articles.yaml#/~1api~1article~1requestPromotion~1{lid}"
   /api/article/withdrawPromotion/{lid}:
